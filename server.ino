@@ -3,6 +3,7 @@
 #include <Preferences.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <TM1637Display.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
@@ -50,9 +51,14 @@ const String HAS_CONFIGURATION_KEY = "hasConf";
 // Display
 const int DISPLAY_WIDTH = 16;
 const int DISPLAY_HEIGHT = 2;
-const int DISPLAY_SDA = 23;
-const int DISPLAY_SCL = 22;
+const int DISPLAY_SDA = 22;
+const int DISPLAY_SCL = 23;
 const String SEPARATOR = "/";
+
+
+// NUMBER DISPLAY
+const int NUM_DISPLAY_DIO = 16;
+const int NUM_DISPLAY_CLK = 17;
 
 // LEDS
 const int GREEN_LED = 12;
@@ -65,6 +71,7 @@ const int RESET_BUTTON = 32;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 LiquidCrystal_I2C lcd(0x27, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+TM1637Display numericDisplay(NUM_DISPLAY_CLK, NUM_DISPLAY_DIO);
 Preferences preferences;
 Wifi wifi = Wifi::getInstance();
 CustomServer server(SERVER_PORT);
@@ -156,16 +163,16 @@ void initializeServer()
   server.begin();
 }
 
-double formatCoinProfitToDouble(String unpaidStr)
+double formatCoinProfitToDouble(String profitStr)
 {
-  const int expIndex = unpaidStr.indexOf('e');
-  double unpaid = unpaidStr.substring(0, expIndex).toDouble();
+  const int expIndex = profitStr.indexOf('e');
+  double profit = profitStr.substring(0, expIndex).toDouble();
   for (int i = 0; i < UNPAID_COIN_EXPONENTIAL; i++)
   {
-    unpaid = unpaid / 10;
+    profit = profit / 10;
   }
 
-  return unpaid;
+  return profit;
 }
 
 unsigned long getActualMonthTimestamp()
@@ -195,7 +202,7 @@ void getEthPrice(double *prices)
   }
 }
 
-void getMinerData(double *savedResponse)
+void getPoolStats(double *savedResponse)
 {
   String fetchURL = MINER_URL + CURRENT_STATS;
   fetchURL.replace(":WALLET", ethWallet);
@@ -204,12 +211,12 @@ void getMinerData(double *savedResponse)
   if (httpResponseCode >= 200 && httpResponseCode < 400)
   {
     Json response(http.getString());
-    double ethPerDay = response.getAttribute<double>(2, "data", "coinsPerMin") * 60 * 24;
-    double usdPerDay = response.getAttribute<double>(2, "data", "usdPerMin") * 60 * 24;
-    double unpaid = formatCoinProfitToDouble(response.getAttribute<String>(2, "data", "unpaid"));
+    double ethPerDay = response.getAttribute<double>(2, "data", "coinsPerMin") * 60 * 24; // Min to Day
+    double usdPerDay = response.getAttribute<double>(2, "data", "usdPerMin") * 60 * 24; // Min to Day
+    double averageHashrate = response.getAttribute<double>(2, "data", "averageHashrate") / 1000000; // H to MH
     savedResponse[0] = ethPerDay;
     savedResponse[1] = usdPerDay;
-    savedResponse[2] = unpaid;
+    savedResponse[2] = averageHashrate;
     http.end();
     return;
   }
@@ -217,6 +224,7 @@ void getMinerData(double *savedResponse)
   http.end();
   savedResponse[0] = 0;
   savedResponse[1] = 0;
+  savedResponse[2] = 0;
 }
 
 double getMonthlyProfit()
@@ -264,13 +272,13 @@ void onConfiguration()
 
 void setup()
 {
-  Serial.begin(9600);
   Wire.begin(DISPLAY_SDA, DISPLAY_SCL);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(RESET_BUTTON, INPUT);
   lcd.begin(DISPLAY_WIDTH, DISPLAY_HEIGHT);
   lcd.backlight();
+  numericDisplay.setBrightness(1);
   preferences.begin(CONFIGURATION_KEY.c_str(), false); // RW
   setupConfig();
 }
@@ -290,16 +298,18 @@ void loop()
     {
       prevMillis = millis();
       timeClient.update();
-      double response[3];
+      double poolStats[3];
       double prices[2];
       getEthPrice(prices);
-      getMinerData(response);
+      getPoolStats(poolStats);
       double monthlyProfit = getMonthlyProfit();
+      numericDisplay.clear();
+      numericDisplay.showNumberDec((int)poolStats[2], true);
       lcd.clear();
       lcd.home();
-      lcd.print(String(response[0], COIN_DECIMALS) + ' ' + ETH + SEPARATOR);
-      lcd.print(String(response[1], FIAT_DECIMALS) + ' ' + USD + SEPARATOR);
-      lcd.print(String((response[0] * prices[1]), FIAT_DECIMALS) + ' ' + ARS);
+      lcd.print(String(poolStats[0], COIN_DECIMALS) + ' ' + ETH + SEPARATOR);
+      lcd.print(String(poolStats[1], FIAT_DECIMALS) + ' ' + USD + SEPARATOR);
+      lcd.print(String((poolStats[0] * prices[1]), FIAT_DECIMALS) + ' ' + ARS);
       lcd.setCursor(0, 1);
       lcd.print(String(monthlyProfit, COIN_DECIMALS) + ' ' + ETH + SEPARATOR);
       lcd.print(String(monthlyProfit * prices[0], FIAT_DECIMALS) + ' ' + USD + SEPARATOR);

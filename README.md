@@ -14,3 +14,8 @@
   - SDA &rarr; P23
   - SCL &rarr; P22
   - 5V - GND
+
+## Numeric Display
+  - DIO &rarr; 16
+  - CLK &rarr; 17
+  - 5V - GND
