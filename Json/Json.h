@@ -15,9 +15,7 @@ public:
   template <typename T>
   T getArrayItem(int index)
   {
-    StaticJsonDocument<2048> json;
-    deserializeJson(json, this->json);
-    return json[index];
+    return this->json[index];
   }
   template <typename T>
   T getAttribute(String key)
@@ -25,24 +23,19 @@ public:
     if (!this->attributeExists(key))
       return (T) false;
 
-    StaticJsonDocument<2048> json;
-    deserializeJson(json, this->json);
-    return json[key];
+    return this->json[key];
   }
   template <typename T>
   T getAttribute(int length, ...)
   {
     va_list keys;
     va_start(keys, length);
-    StaticJsonDocument<2048> json;
-    deserializeJson(json, this->json);
     const char *firstKey = va_arg(keys, char *);
-    StaticJsonDocument<2048> neestedJson = json[firstKey];
+    StaticJsonDocument<2048> neestedJson = this->json[firstKey];
     for (int i = 1; i < length - 1; i++)
     {
       const char *key = va_arg(keys, char *);
-      const String neestedStr = neestedJson[key];
-      deserializeJson(neestedJson, neestedStr);
+      neestedJson = neestedJson[key];
     }
     return neestedJson[va_arg(keys, char *)];
   }
@@ -51,7 +44,7 @@ public:
   boolean attributeExists(int length, ...);
 
 private:
-  String json;
+  StaticJsonDocument<2048> json;
 };
 
 #endif

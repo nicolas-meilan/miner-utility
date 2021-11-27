@@ -5,44 +5,36 @@
 
 #include "Json.h"
 
-Json::Json(String json)
+Json::Json(String jsonStr)
 {
-  this->json = json;
+  deserializeJson(this->json, jsonStr);
 };
 
-Json::Json(String json, String baseKey)
+Json::Json(String jsonStr, String baseKey)
 {
-  const int indexOfKey = json.indexOf(baseKey);
+  const int indexOfKey = jsonStr.indexOf(baseKey);
   const int initialSubjsonIndex = indexOfKey + baseKey.length() + 2;
-  const String subJson = json.substring(initialSubjsonIndex, json.length() - 1);
-  this->json = subJson;
+  const String subJsonStr = jsonStr.substring(initialSubjsonIndex, jsonStr.length() - 1);
+  deserializeJson(this->json, subJsonStr);
 };
 
 int Json::size()
 {
-  StaticJsonDocument<2048> json;
-  deserializeJson(json, this->json);
-
-  return json.size();
+  return this->json.size();
 }
 
 boolean Json::attributeExists(String key)
 {
-  StaticJsonDocument<2048> json;
-  deserializeJson(json, this->json);
-
-  return json.containsKey(key);
+  return this->json.containsKey(key);
 }
 
 boolean Json::attributeExists(int length, ...)
 {
   va_list keys;
   va_start(keys, length);
-  StaticJsonDocument<2048> json;
-  deserializeJson(json, this->json);
   const char *firstKey = va_arg(keys, char *);
-  StaticJsonDocument<2048> neestedJson = json;
-  if (!json.containsKey(firstKey))
+  StaticJsonDocument<2048> neestedJson = this->json;
+  if (!this->json.containsKey(firstKey))
     return false;
   for (int i = 1; i < length; i++)
   {
