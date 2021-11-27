@@ -36,8 +36,7 @@ public:
     StaticJsonDocument<2048> json;
     deserializeJson(json, this->json);
     const char *firstKey = va_arg(keys, char *);
-    StaticJsonDocument<2048> neestedJson;
-    neestedJson = json[firstKey];
+    StaticJsonDocument<2048> neestedJson = json[firstKey];
     for (int i = 1; i < length - 1; i++)
     {
       const char *key = va_arg(keys, char *);
