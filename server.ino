@@ -210,10 +210,10 @@ void getPoolStats(double *savedResponse)
   const int httpResponseCode = http.GET();
   if (httpResponseCode >= 200 && httpResponseCode < 400)
   {
-    Json response(http.getString());
-    double ethPerDay = response.getAttribute<double>(2, "data", "coinsPerMin") * 60 * 24; // Min to Day
-    double usdPerDay = response.getAttribute<double>(2, "data", "usdPerMin") * 60 * 24; // Min to Day
-    double averageHashrate = response.getAttribute<double>(2, "data", "averageHashrate") / 1000000; // H to MH
+    Json response(http.getString(), "data");
+    double ethPerDay = response.getAttribute<double>("coinsPerMin") * 60 * 24; // Min to Day
+    double usdPerDay = response.getAttribute<double>("usdPerMin") * 60 * 24; // Min to Day
+    double averageHashrate = response.getAttribute<double>("averageHashrate") / 1000000; // H to MH
     savedResponse[0] = ethPerDay;
     savedResponse[1] = usdPerDay;
     savedResponse[2] = averageHashrate;
@@ -236,8 +236,7 @@ double getMonthlyProfit()
   const int httpResponseCode = http.GET();
   if (httpResponseCode >= 200 && httpResponseCode < 400)
   {
-    Json response(http.getString());
-    Json payouts(response.getAttribute<String>("data"));
+    Json payouts(http.getString(), "data");
     double amount = 0;
     for (int i = 0; i < payouts.size(); i++)
     {

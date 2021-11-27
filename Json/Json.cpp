@@ -10,6 +10,14 @@ Json::Json(String json)
   this->json = json;
 };
 
+Json::Json(String json, String baseKey)
+{
+  const int indexOfKey = json.indexOf(baseKey);
+  const int initialSubjsonIndex = indexOfKey + baseKey.length() + 2;
+  const String subJson = json.substring(initialSubjsonIndex, json.length() - 1);
+  this->json = subJson;
+};
+
 int Json::size()
 {
   StaticJsonDocument<2048> json;

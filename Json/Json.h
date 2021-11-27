@@ -11,6 +11,7 @@ class Json
 {
 public:
   Json(String jsonStr);
+  Json(String jsonStr, String baseKey);
   template <typename T>
   T getArrayItem(int index)
   {
