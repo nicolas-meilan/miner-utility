@@ -31,7 +31,7 @@ public:
     va_list keys;
     va_start(keys, length);
     const char *firstKey = va_arg(keys, char *);
-    StaticJsonDocument<2048> neestedJson = this->json[firstKey];
+    JsonObject neestedJson = this->json[firstKey].to<JsonObject>();
     for (int i = 1; i < length - 1; i++)
     {
       const char *key = va_arg(keys, char *);
