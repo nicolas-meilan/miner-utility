@@ -11,40 +11,45 @@ class Json
 {
 public:
   Json(String jsonStr);
-  Json(String jsonStr, String baseKey);
+  Json(String jsonStr, String key);
   template <typename T>
   T getArrayItem(int index)
   {
     return this->json[index];
   }
+
   template <typename T>
   T getAttribute(String key)
   {
-    if (!this->attributeExists(key))
-      return (T) false;
+    Json::Attribute attribute = this->attributeFromString(key);
+    JsonObject neestedJson = this->json.as<JsonObject>();
 
-    return this->json[key];
-  }
-  template <typename T>
-  T getAttribute(int length, ...)
-  {
-    va_list keys;
-    va_start(keys, length);
-    const char *firstKey = va_arg(keys, char *);
-    StaticJsonDocument<2048> neestedJson = this->json[firstKey];
-    for (int i = 1; i < length - 1; i++)
+    for (int i = 0; i < attribute.length -1; i++)
     {
-      const char *key = va_arg(keys, char *);
-      neestedJson = neestedJson[key];
+      const String actualKey = attribute.keys[i];
+      neestedJson = neestedJson[actualKey];
     }
-    return neestedJson[va_arg(keys, char *)];
+
+    T finalAttribute = neestedJson[attribute.keys[attribute.length -1]];
+
+    return finalAttribute;
   }
+
   int size();
   boolean attributeExists(String key);
-  boolean attributeExists(int length, ...);
 
 private:
+  static const int maxJsonAttributes = 10;
   StaticJsonDocument<2048> json;
+
+  struct Attribute
+  {
+    String keys[maxJsonAttributes];
+    int length = 0;
+  };
+
+  Attribute attributeFromString(String key);
+  String removeKeyFromString(String jsonStr, String key);
 };
 
 #endif

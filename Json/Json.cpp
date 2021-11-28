@@ -10,11 +10,15 @@ Json::Json(String jsonStr)
   deserializeJson(this->json, jsonStr);
 };
 
-Json::Json(String jsonStr, String baseKey)
+Json::Json(String jsonStr, String key)
 {
-  const int indexOfKey = jsonStr.indexOf(baseKey);
-  const int initialSubjsonIndex = indexOfKey + baseKey.length() + 2;
-  const String subJsonStr = jsonStr.substring(initialSubjsonIndex, jsonStr.length() - 1);
+  Json::Attribute attribute = attributeFromString(key);
+  String subJsonStr = jsonStr;
+  for (int i = 0; i < attribute.length; i++)
+  {
+    subJsonStr = this->removeKeyFromString(jsonStr, key);
+  }
+
   deserializeJson(this->json, subJsonStr);
 };
 
@@ -25,24 +29,53 @@ int Json::size()
 
 boolean Json::attributeExists(String key)
 {
-  return this->json.containsKey(key);
-}
+  Json::Attribute attribute = this->attributeFromString(key);
+  JsonObject neestedJson = this->json.as<JsonObject>();
 
-boolean Json::attributeExists(int length, ...)
-{
-  va_list keys;
-  va_start(keys, length);
-  const char *firstKey = va_arg(keys, char *);
-  StaticJsonDocument<2048> neestedJson = this->json;
-  if (!this->json.containsKey(firstKey))
-    return false;
-  for (int i = 1; i < length; i++)
+  for (int i = 0; i < attribute.length; i++)
   {
-    const char *key = va_arg(keys, char *);
-    if (!neestedJson.containsKey(key))
+    String actualKey = attribute.keys[i];
+    if (!this->json.containsKey(actualKey))
       return false;
-    neestedJson = neestedJson[key];
+
+    neestedJson = neestedJson[actualKey];
   }
 
   return true;
+}
+
+String Json::removeKeyFromString(String jsonStr, String key)
+{
+  const int indexOfKey = jsonStr.indexOf(key);
+  const int initialSubjsonIndex = indexOfKey + key.length() + 2;
+
+  return jsonStr.substring(initialSubjsonIndex, jsonStr.length() - 1);
+}
+
+Json::Attribute Json::attributeFromString(String key)
+{
+  String keyToEdit = key;
+  const char separator = '.';
+  const char fakeSeparator = '-';
+  int beginIndex = 0;
+  int endIndex = keyToEdit.indexOf(separator);
+  Json::Attribute attribute;
+
+  if (endIndex < 0)
+  {
+    attribute.keys[attribute.length++] = key;
+    return attribute;
+  }
+
+  while (endIndex >= 0)
+  {
+    attribute.keys[attribute.length++] = keyToEdit.substring(beginIndex, endIndex);
+    beginIndex = endIndex + 1;
+    keyToEdit.setCharAt(endIndex, fakeSeparator);
+    endIndex = keyToEdit.indexOf(separator);
+  }
+
+  attribute.keys[attribute.length++] = keyToEdit.substring(beginIndex);
+
+  return attribute;
 }
