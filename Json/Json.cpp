@@ -33,7 +33,7 @@ boolean Json::attributeExists(int length, ...)
   va_list keys;
   va_start(keys, length);
   const char *firstKey = va_arg(keys, char *);
-  JsonObject neestedJson = this->json.to<JsonObject>();
+  StaticJsonDocument<2048> neestedJson = this->json;
   if (!this->json.containsKey(firstKey))
     return false;
   for (int i = 1; i < length; i++)
