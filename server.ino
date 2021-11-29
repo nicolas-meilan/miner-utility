@@ -55,7 +55,6 @@ const int DISPLAY_SDA = 22;
 const int DISPLAY_SCL = 23;
 const String SEPARATOR = "/";
 
-
 // NUMBER DISPLAY
 const int NUM_DISPLAY_DIO = 16;
 const int NUM_DISPLAY_CLK = 17;
@@ -163,6 +162,15 @@ void initializeServer()
   server.begin();
 }
 
+String formatEthAmount(double eth, double usdEth, double arsEth)
+{
+  const String ethAmount = String(eth, COIN_DECIMALS) + ' ' + ETH;
+  const String usdAmount = String(eth * usdEth, FIAT_DECIMALS) + ' ' + USD;
+  const String arsAmount = String(eth * arsEth, FIAT_DECIMALS) + ' ' + ARS;
+
+  return ethAmount + SEPARATOR + usdAmount + SEPARATOR + arsAmount;
+}
+
 double formatCoinProfitToDouble(String profitStr)
 {
   const int expIndex = profitStr.indexOf('e');
@@ -188,7 +196,7 @@ unsigned long getActualMonthTimestamp()
   return mktime(ptm);
 }
 
-void getEthPrice(double *prices)
+void getEthPrice(double prices[2])
 {
   http.begin(PRICES_URL.c_str());
   const int httpResponseCode = http.GET();
@@ -202,7 +210,7 @@ void getEthPrice(double *prices)
   }
 }
 
-void getPoolStats(double *savedResponse)
+void getPoolStats(double savedResponse[3])
 {
   String fetchURL = MINER_URL + CURRENT_STATS;
   fetchURL.replace(":WALLET", ethWallet);
@@ -211,11 +219,11 @@ void getPoolStats(double *savedResponse)
   if (httpResponseCode >= 200 && httpResponseCode < 400)
   {
     Json response(http.getString(), "data");
-    double ethPerDay = response.getAttribute<double>("coinsPerMin") * 60 * 24; // Min to Day
-    double usdPerDay = response.getAttribute<double>("usdPerMin") * 60 * 24; // Min to Day
-    double averageHashrate = response.getAttribute<double>("averageHashrate") / 1000000; // H to MH
+    const double ethPerDay = response.getAttribute<double>("coinsPerMin") * 60 * 24;           // Min to Day
+    const double averageHashrate = response.getAttribute<double>("averageHashrate") / 1000000; // H to MH
+    const double unpaid = formatCoinProfitToDouble(response.getAttribute<String>("unpaid"));
     savedResponse[0] = ethPerDay;
-    savedResponse[1] = usdPerDay;
+    savedResponse[1] = unpaid;
     savedResponse[2] = averageHashrate;
     http.end();
     return;
@@ -223,8 +231,8 @@ void getPoolStats(double *savedResponse)
 
   http.end();
   savedResponse[0] = 0;
-  savedResponse[1] = 0;
   savedResponse[2] = 0;
+  savedResponse[3] = 0;
 }
 
 double getMonthlyProfit()
@@ -306,13 +314,13 @@ void loop()
       numericDisplay.showNumberDec((int)poolStats[2], true);
       lcd.clear();
       lcd.home();
-      lcd.print(String(poolStats[0], COIN_DECIMALS) + ' ' + ETH + SEPARATOR);
-      lcd.print(String(poolStats[1], FIAT_DECIMALS) + ' ' + USD + SEPARATOR);
-      lcd.print(String((poolStats[0] * prices[1]), FIAT_DECIMALS) + ' ' + ARS);
+      //  Daily estimated
+      // lcd.print(formatEthAmount(poolStats[0], prices[0], prices[1]));
+      // Unpaid
+      lcd.print(formatEthAmount(poolStats[1], prices[0], prices[1]));
       lcd.setCursor(0, 1);
-      lcd.print(String(monthlyProfit, COIN_DECIMALS) + ' ' + ETH + SEPARATOR);
-      lcd.print(String(monthlyProfit * prices[0], FIAT_DECIMALS) + ' ' + USD + SEPARATOR);
-      lcd.print(String((monthlyProfit * prices[1]), FIAT_DECIMALS) + ' ' + ARS);
+      // Monthly consolidated
+      lcd.print(formatEthAmount(monthlyProfit, prices[0], prices[1]));
     }
   }
   else
