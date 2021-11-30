@@ -5,6 +5,13 @@
             "name": "Arduino",
             "compilerPath": "/home/nicolas/.arduino15/packages/esp32/tools/xtensa-esp32-elf-gcc/1.22.0-97-gc752ad5-5.2.0/bin/xtensa-esp32-elf-g++",
             "compilerArgs": [
+                "-u",
+                "--language-force=c++",
+                "-f",
+                "-",
+                "--c++-kinds=svpf",
+                "--fields=KSTtzns",
+                "--line-directives",
                 "-std=gnu++11",
                 "-Wpointer-arith",
                 "-fexceptions",

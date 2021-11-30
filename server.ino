@@ -15,7 +15,7 @@
 const String ETH = "ETH";
 const String USD = "USD";
 const String ARS = "ARS";
-const int UNPAID_COIN_EXPONENTIAL = 3;
+const int ETH_WEI_DECIMALS = 18;
 const int COIN_DECIMALS = 5;
 const int FIAT_DECIMALS = 2;
 
@@ -23,6 +23,7 @@ const int FIAT_DECIMALS = 2;
 const String ACCESS_POINT_SSID = "minerUtilityConfig";
 const String MDNS_NAME = "minerUtility";
 const String CONNECTING = "Conectando ...";
+const String UPDATING = "Actualizando ...";
 const String CONFIGURE = "Modo Configurable";
 const String FAILED_CONNECTION_TITLE = "No se pudo conectar a la red wifi";
 const String FAILED_CONNECTION_MESSAGE = "Pruebe a resetear y volver a configurar";
@@ -171,11 +172,13 @@ String formatEthAmount(double eth, double usdEth, double arsEth)
   return ethAmount + SEPARATOR + usdAmount + SEPARATOR + arsAmount;
 }
 
-double formatCoinProfitToDouble(String profitStr)
+double weiToEth(String profitStr)
 {
+  Serial.println(profitStr);
   const int expIndex = profitStr.indexOf('e');
   double profit = profitStr.substring(0, expIndex).toDouble();
-  for (int i = 0; i < UNPAID_COIN_EXPONENTIAL; i++)
+  int exp = ETH_WEI_DECIMALS - profitStr.substring(expIndex + 1).toInt();
+  for (int i = 0; i < exp; i++)
   {
     profit = profit / 10;
   }
@@ -221,7 +224,7 @@ void getPoolStats(double savedResponse[3])
     Json response(http.getString(), "data");
     const double ethPerDay = response.getAttribute<double>("coinsPerMin") * 60 * 24;           // Min to Day
     const double averageHashrate = response.getAttribute<double>("averageHashrate") / 1000000; // H to MH
-    const double unpaid = formatCoinProfitToDouble(response.getAttribute<String>("unpaid"));
+    const double unpaid = weiToEth(response.getAttribute<String>("unpaid"));
     savedResponse[0] = ethPerDay;
     savedResponse[1] = unpaid;
     savedResponse[2] = averageHashrate;
@@ -250,7 +253,7 @@ double getMonthlyProfit()
     {
       Json payoutItem(payouts.getArrayItem<String>(i));
       const unsigned long paidOn = payoutItem.getAttribute<unsigned long>("paidOn");
-      const double payoutAmount = formatCoinProfitToDouble(payoutItem.getAttribute<String>("amount"));
+      const double payoutAmount = weiToEth(payoutItem.getAttribute<String>("amount"));
       if (paidOn > month)
         amount += payoutAmount;
     }
@@ -279,6 +282,7 @@ void onConfiguration()
 
 void setup()
 {
+  Serial.begin(115200);
   Wire.begin(DISPLAY_SDA, DISPLAY_SCL);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
@@ -303,6 +307,9 @@ void loop()
     }
     else if (millisDifference >= DELAY_FETCH)
     {
+      lcd.clear();
+      lcd.home();
+      lcd.print(UPDATING);
       prevMillis = millis();
       timeClient.update();
       double poolStats[3];
