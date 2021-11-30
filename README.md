@@ -1,6 +1,6 @@
 # Miner Utility ESP32
 
-- Show estimated daily profit on ETH, USD and ARS.
+- Show unpaid balance on ETH, USD and ARS.
 - Show monthly profit on ETH, USD and ARS.
 
 ## LEDS
