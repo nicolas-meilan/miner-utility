@@ -54,7 +54,17 @@ const int DISPLAY_WIDTH = 16;
 const int DISPLAY_HEIGHT = 2;
 const int DISPLAY_SDA = 22;
 const int DISPLAY_SCL = 23;
-const String SEPARATOR = "/";
+const int SEPARATOR_CHAR_ID = 0;
+uint8_t SEPARATOR[8] = {
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+};
 
 // NUMBER DISPLAY
 const int NUM_DISPLAY_DIO = 16;
@@ -163,13 +173,17 @@ void initializeServer()
   server.begin();
 }
 
-String formatEthAmount(double eth, double usdEth, double arsEth)
+void printEthBalance(double eth, double usdEth, double arsEth)
 {
   const String ethAmount = String(eth, COIN_DECIMALS) + ' ' + ETH;
   const String usdAmount = String(eth * usdEth, FIAT_DECIMALS) + ' ' + USD;
   const String arsAmount = String(eth * arsEth, FIAT_DECIMALS) + ' ' + ARS;
 
-  return ethAmount + SEPARATOR + usdAmount + SEPARATOR + arsAmount;
+  lcd.print(ethAmount);
+  lcd.write(SEPARATOR_CHAR_ID);
+  lcd.print(usdAmount);
+  lcd.write(SEPARATOR_CHAR_ID);
+  lcd.print(arsAmount);
 }
 
 double weiToEth(String profitStr)
@@ -288,6 +302,7 @@ void setup()
   pinMode(RED_LED, OUTPUT);
   pinMode(RESET_BUTTON, INPUT);
   lcd.begin(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  lcd.createChar (SEPARATOR_CHAR_ID, SEPARATOR);
   lcd.backlight();
   numericDisplay.setBrightness(1);
   preferences.begin(CONFIGURATION_KEY.c_str(), false); // RW
@@ -322,12 +337,12 @@ void loop()
       lcd.clear();
       lcd.home();
       //  Daily estimated
-      // lcd.print(formatEthAmount(poolStats[0], prices[0], prices[1]));
+      // printEthBalance(poolStats[0], prices[0], prices[1]);
       // Unpaid
-      lcd.print(formatEthAmount(poolStats[1], prices[0], prices[1]));
+      printEthBalance(poolStats[1], prices[0], prices[1]);
       lcd.setCursor(0, 1);
       // Monthly consolidated
-      lcd.print(formatEthAmount(monthlyProfit, prices[0], prices[1]));
+      printEthBalance(monthlyProfit, prices[0], prices[1]);
     }
   }
   else
