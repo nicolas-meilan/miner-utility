@@ -11,7 +11,7 @@
 #include "CustomServer.h"
 #include "Json.h"
 
-// COINS
+// Coins
 const String ETH = "ETH";
 const String USD = "USD";
 const String ARS = "ARS";
@@ -28,15 +28,11 @@ const String CONFIGURE = "Modo Configurable";
 const String FAILED_CONNECTION_TITLE = "No se pudo conectar a la red wifi";
 const String FAILED_CONNECTION_MESSAGE = "Pruebe a resetear y volver a configurar";
 
-// DELAYS
-const int BASE_DELAY = 350;
-const int DELAY_FETCH = 60000 * 5;
-
 // Server
 const int SERVER_PORT = 80;
 const String SERVER_RESPONSE_TYPE = "application/json";
 
-// GET API
+// Get API
 const String MINER_URL = "https://api.ethermine.org/miner/:WALLET";
 const String PRICES_URL = "https://min-api.cryptocompare.com/data/price?fsym=" + ETH + "&tsyms=" + USD + ',' + ARS;
 const String CURRENT_STATS = "/currentStats";
@@ -55,18 +51,21 @@ const int DISPLAY_HEIGHT = 2;
 const int DISPLAY_SDA = 22;
 const int DISPLAY_SCL = 23;
 const int SEPARATOR_CHAR_ID = 0;
+const int ETH_COL = 11;
+const int USD_COL = 11;
+const int ARS_COL = 14;
 uint8_t SEPARATOR[8] = {
-  B00100,
-  B00100,
-  B00100,
-  B00100,
-  B00100,
-  B00100,
-  B00100,
-  B00100,
+    B00100,
+    B00100,
+    B00100,
+    B00100,
+    B00100,
+    B00100,
+    B00100,
+    B00100,
 };
 
-// NUMBER DISPLAY
+// Numeric Display
 const int NUM_DISPLAY_DIO = 16;
 const int NUM_DISPLAY_CLK = 17;
 
@@ -78,14 +77,18 @@ const int FLICKER_DELAY = 500;
 // Reset
 const int RESET_BUTTON = 32;
 
+// Delays
+const int BASE_DELAY = 350;
+const int DELAY_FETCH = 60000 * 5;
+
+Wifi wifi = Wifi::getInstance();
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
+HTTPClient http;
+CustomServer server(SERVER_PORT);
 LiquidCrystal_I2C lcd(0x27, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 TM1637Display numericDisplay(NUM_DISPLAY_CLK, NUM_DISPLAY_DIO);
 Preferences preferences;
-Wifi wifi = Wifi::getInstance();
-CustomServer server(SERVER_PORT);
-HTTPClient http;
 bool hasConfiguration = false;
 String ethWallet = "";
 unsigned long prevMillis = millis() + DELAY_FETCH;
@@ -173,22 +176,39 @@ void initializeServer()
   server.begin();
 }
 
+String formatColumn(String content, int size)
+{
+  const int spacesNeeded = size - content.length();
+  String spacesBefore;
+  String spacesAfter;
+  for (int i = 0; i < spacesNeeded / 2; i++)
+  {
+    spacesBefore += ' ';
+    spacesAfter += ' ';
+  }
+
+  if (!spacesNeeded % 2)
+    spacesAfter += ' ';
+
+  return spacesBefore + content + spacesAfter;
+}
+
 void printEthBalance(double eth, double usdEth, double arsEth)
 {
   const String ethAmount = String(eth, COIN_DECIMALS) + ' ' + ETH;
   const String usdAmount = String(eth * usdEth, FIAT_DECIMALS) + ' ' + USD;
   const String arsAmount = String(eth * arsEth, FIAT_DECIMALS) + ' ' + ARS;
 
-  lcd.print(ethAmount);
+  lcd.print(formatColumn(ethAmount, ETH_COL));
   lcd.write(SEPARATOR_CHAR_ID);
-  lcd.print(usdAmount);
+  lcd.print(formatColumn(usdAmount, USD_COL));
   lcd.write(SEPARATOR_CHAR_ID);
-  lcd.print(arsAmount);
+  lcd.print(formatColumn(arsAmount, ARS_COL));
+  lcd.write(SEPARATOR_CHAR_ID);
 }
 
 double weiToEth(String profitStr)
 {
-  Serial.println(profitStr);
   const int expIndex = profitStr.indexOf('e');
   double profit = profitStr.substring(0, expIndex).toDouble();
   int exp = ETH_WEI_DECIMALS - profitStr.substring(expIndex + 1).toInt();
@@ -296,13 +316,12 @@ void onConfiguration()
 
 void setup()
 {
-  Serial.begin(115200);
   Wire.begin(DISPLAY_SDA, DISPLAY_SCL);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(RESET_BUTTON, INPUT);
   lcd.begin(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-  lcd.createChar (SEPARATOR_CHAR_ID, SEPARATOR);
+  lcd.createChar(SEPARATOR_CHAR_ID, SEPARATOR);
   lcd.backlight();
   numericDisplay.setBrightness(1);
   preferences.begin(CONFIGURATION_KEY.c_str(), false); // RW
