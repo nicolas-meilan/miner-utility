@@ -179,6 +179,7 @@ void initializeServer()
 String formatColumn(String content, int size)
 {
   const int spacesNeeded = size - content.length();
+  const bool spacesNeedesIsPair = !(spacesNeeded % 2);
   String spacesBefore;
   String spacesAfter;
   for (int i = 0; i < spacesNeeded / 2; i++)
@@ -187,7 +188,7 @@ String formatColumn(String content, int size)
     spacesAfter += ' ';
   }
 
-  if (!spacesNeeded % 2)
+  if (!spacesNeedesIsPair)
     spacesAfter += ' ';
 
   return spacesBefore + content + spacesAfter;
