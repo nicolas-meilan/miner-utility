@@ -82,8 +82,8 @@ const int FLICKER_DELAY = 500;
 const int RESET_BUTTON = 32;
 
 // Delays
-const int BASE_DELAY = 350;
-const int DELAY_FETCH = 60000 * 5;
+const unsigned long BASE_DELAY = 350;
+const unsigned long DELAY_FETCH = 15 * 60000;
 
 Wifi wifi = Wifi::getInstance();
 WiFiUDP ntpUDP;
