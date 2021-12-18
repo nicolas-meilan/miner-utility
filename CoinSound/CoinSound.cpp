@@ -13,6 +13,6 @@ CoinSound::CoinSound(int pin)
 
 void CoinSound::dispatchMarioCoinSound()
 {
-  tone(this->pin, NOTE_B5, 200);
-  tone(this->pin, NOTE_E6, 550);
+  tone(this->pin, NOTE_B5, 100);
+  tone(this->pin, NOTE_E6, 700);
 }
