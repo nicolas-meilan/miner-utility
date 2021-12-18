@@ -10,6 +10,7 @@
 #include "Wifi.h"
 #include "CustomServer.h"
 #include "Json.h"
+#include "CoinSound.h"
 
 // Coins
 const String ETH = "ETH";
@@ -69,6 +70,9 @@ uint8_t SEPARATOR[8] = {
 const int NUM_DISPLAY_DIO = 16;
 const int NUM_DISPLAY_CLK = 17;
 
+// Buzzer
+const int BUZZER_PIN = 2;
+
 // LEDS
 const int GREEN_LED = 12;
 const int RED_LED = 13;
@@ -88,10 +92,12 @@ HTTPClient http;
 CustomServer server(SERVER_PORT);
 LiquidCrystal_I2C lcd(0x27, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 TM1637Display numericDisplay(NUM_DISPLAY_CLK, NUM_DISPLAY_DIO);
+CoinSound sound(BUZZER_PIN);
 Preferences preferences;
 bool hasConfiguration = false;
 String ethWallet = "";
 unsigned long prevMillis = millis() + DELAY_FETCH;
+double prevPendingPayout = 0;
 
 void setupConfig()
 {
@@ -359,10 +365,15 @@ void loop()
       //  Daily estimated
       // printEthBalance(poolStats[0], prices[0], prices[1]);
       // Unpaid
-      printEthBalance(poolStats[1], prices[0], prices[1]);
+      const double pendingPayout = poolStats[1];
+      printEthBalance(pendingPayout, prices[0], prices[1]);
       lcd.setCursor(0, 1);
       // Monthly consolidated
       printEthBalance(monthlyProfit, prices[0], prices[1]);
+      const boolean wasPaymentMade = prevPendingPayout != pendingPayout && pendingPayout == 0;
+      if (wasPaymentMade)
+        sound.dispatchMarioCoinSound();
+      prevPendingPayout = pendingPayout;
     }
   }
   else

@@ -19,3 +19,6 @@
   - DIO &rarr; 16
   - CLK &rarr; 17
   - 5V - GND
+
+## Buzzer
+  - P2 - GND
