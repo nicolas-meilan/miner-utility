@@ -370,7 +370,7 @@ void loop()
       lcd.setCursor(0, 1);
       // Monthly consolidated
       printEthBalance(monthlyProfit, prices[0], prices[1]);
-      const boolean wasPaymentMade = prevPendingPayout != pendingPayout && pendingPayout == 0;
+      const boolean wasPaymentMade = prevPendingPayout > pendingPayout;
       if (wasPaymentMade)
         sound.dispatchMarioCoinSound();
       prevPendingPayout = pendingPayout;
