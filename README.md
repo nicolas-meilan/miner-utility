@@ -1,24 +1,75 @@
 # Miner Utility ESP32
 
+## Dependencies
+
+- **Config Setup for esp32**: <https://learn.adafruit.com/adafruit-esp32-feather-v2/arduino-ide-setup?gclid=Cj0KCQjwspKUBhCvARIsAB2IYuusW4fzIOAJFdCHOSUDSvPui8_epteo6yo4G-yMXP0KPlNABeTn2GUaAsT3EALw_wcB>
+
+- Install esp32 dependencies:
+  - HTTPClient.h
+  - Preferences.h
+  - Wire.h
+  - LiquidCrystal_I2C.h
+  - TM1637Display.h
+  - NTPClient.h
+  - WiFiUdp.h
+  - WebServer.h
+  - TM1637Display.h
+  - ArduinoJson.h
+  - pitches.h
+  - TM1637Display.h
+  - TM1637Display.h
+
+- To run the project you need move the **CoinSound, CustomerServer, Json, Tone32 and Wifi** folders to ```Arduino/libraries```
+
+## Utility Configuration
+
+1. Connect a device to the access point ```minerUtilityConfig```.
+2. Send the ETH wallet address to 192.168.4.1/ethwallet using the next body:
+
+``` json
+{
+  "wallet": "xxx"
+}
+```
+
+3. Send the wifi ssid and password to 192.168.4.1/wifiConfig using the next body:
+
+``` json
+{
+  "ssid": "xxx",
+  "password": "xxx"
+}
+```
+
+## Utility features
+
+- Show hashrate.
 - Show unpaid balance on ETH, USD and ARS.
 - Show monthly profit on ETH, USD and ARS.
 
-## LEDS
-  - Green &rarr; P12 220 OHM - GND
-  - RED &rarr; P13 220 OHM - GND
+### HW connections
 
-## Button
-  - Pull Up 220 OHM &rarr; P32 - GND 5V
+#### LEDS
 
-## LCD I2C
-  - SDA &rarr; P23
-  - SCL &rarr; P22
-  - 5V - GND
+- Green &rarr; P12 220 OHM - GND
+- RED &rarr; P13 220 OHM - GND
 
-## Numeric Display
-  - DIO &rarr; 16
-  - CLK &rarr; 17
-  - 5V - GND
+#### Button
 
-## Buzzer
-  - P2 - GND
+- Pull Up 220 OHM &rarr; P32 - GND 5V
+
+#### LCD I2C
+
+- SDA &rarr; P23
+- SCL &rarr; P22
+- 5V - GND
+
+#### Numeric Display
+
+- DIO &rarr; 16
+- CLK &rarr; 17
+- 5V - GND
+
+#### Buzzer
+
+- P2 - 220 OHM - GND
