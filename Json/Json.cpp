@@ -11,8 +11,7 @@ Json::Json(String jsonStr)
 };
 
 Json::Json(String jsonStr, String key)
-{
-  Json::Attribute attribute = attributeFromString(key);
+{sbuteFromString(key);
   String subJsonStr = jsonStr;
   for (int i = 0; i < attribute.length; i++)
   {
