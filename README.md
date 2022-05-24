@@ -73,3 +73,6 @@
 #### Buzzer
 
 - GPIO 2 - 220 OHM - GND
+
+
+![diagram](./schematic/pictoric-diagram-png.png)
