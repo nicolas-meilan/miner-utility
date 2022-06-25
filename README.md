@@ -51,25 +51,27 @@
 
 #### LEDS
 
-- Green &rarr; P12 220 OHM - GND
-- RED &rarr; P13 220 OHM - GND
+- Green &rarr; GPIO 12 - 220 OHM - GND
+- RED &rarr; GPIO 13 - 220 OHM - GND
 
 #### Button
 
-- Pull Up 220 OHM &rarr; P32 - GND 5V
+- Pull Up 220 OHM &rarr; GPIO 32 - GND 5V
 
 #### LCD I2C
 
-- SDA &rarr; P23
-- SCL &rarr; P22
+- SDA &rarr; GPIO 23
+- SCL &rarr; GPIO 22
 - 5V - GND
 
 #### Numeric Display
 
-- DIO &rarr; 16
-- CLK &rarr; 17
+- DIO &rarr; GPIO 16
+- CLK &rarr; GPIO 17
 - 5V - GND
 
 #### Buzzer
 
-- P2 - 220 OHM - GND
+- GPIO 2 - 220 OHM - GND
+
+![diagram](./schematic/pictoric-diagram-png.png)
